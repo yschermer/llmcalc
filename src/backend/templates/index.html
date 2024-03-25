@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LLM calculator</title>
+    <link rel="stylesheet" href="../static/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <script src="../static/js/htmx.min.js"></script>
+</head>
+
+<body>
+    <section class="section">
+        <form>
+            <div class="columns">
+                <div class="column">
+                    <div class="field">
+                        <label class="label">Input</label>
+                        <div class="control">
+                            <textarea name="input_message" class="textarea" placeholder="Textarea"
+                                hx-post="/calc/tokens" hx-target="#calc-unit-results-input"
+                                hx-trigger="input">Here goes the input to the LLM</textarea>
+                        </div>
+                    </div>
+                    <div id="calc-unit-results-input">
+                        <p>{{ units[0].input }} <span style="color: #95a5a6;">{{ units[0].unit.value }}</span></p>
+                        <p>{{ units[1].input }} <span style="color: #95a5a6;">{{ units[1].unit.value }}</span></p>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="field">
+                        <label class="label">Output</label>
+                        <div class="control">
+                            <textarea name="output_message" class="textarea" placeholder="Textarea"
+                                hx-post="/calc/tokens" hx-target="#calc-unit-results-input"
+                                hx-trigger="input">Here goes the output of the LLM</textarea>
+                        </div>
+                    </div>
+                    <div id="calc-unit-results-output">
+                        <p>{{ units[0].output }} <span style="color: #95a5a6;">{{ units[0].unit.value }}</span></p>
+                        <p>{{ units[1].output }} <span style="color: #95a5a6;">{{ units[1].unit.value }}</span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">Inferences</label>
+                <div class="control">
+                    <input class="input" value=1 type="number" name="api_calls" placeholder="API Calls"
+                        hx-post="/calc/tokens" hx-target="#calc-unit-results-input" hx-trigger="input" required>
+                </div>
+            </div>
+        </form>
+    </section>
+    <section class="section">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th style="color: #95a5a6;">Model</th>
+                    <th style="color: #95a5a6;">Input Price</th>
+                    <th style="color: #95a5a6;">Output Price</th>
+                    <th style="color: #95a5a6;">Cost<br />/ Inference</th>
+                    <th style="color: #95a5a6;">Total</th>
+                </tr>
+            </thead>
+            <tbody id="calc-results">
+                {% for cost in costs %}
+                <tr>
+                    <td><img src="../static/images/{{ cost.model.provider.value }}.png" width="24"
+                            style="background-color: white; border-radius: 100%; padding:4px;" /></td>
+                    <td>{{ cost.model.name }}</td>
+                    <td>{{ "$%.5f"|format(cost.model.input_price) }} <span style="color: #95a5a6;">/ 1k {{
+                            cost.model.unit.value }}</span></td>
+                    <td>{{ "$%.5f"|format(cost.model.output_price) }} <span style="color: #95a5a6;">/ 1k {{
+                            cost.model.unit.value }}</span></td>
+                    <td>{{ "$%.5f"|format(cost.cost) }}</td>
+                    <td>{{ "$%.5f"|format(cost.total) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </section>
+
+    <script>
+        document.body.addEventListener('htmx:afterSwap', function (event) {
+            if (event.detail.target.id === 'calc-unit-results-input' || event.detail.target.id === 'calc-unit-results-output') {
+                var inputMessage = document.querySelector('textarea[name="input_message"]').value;
+                var outputMessage = document.querySelector('textarea[name="output_message"]').value;
+                var apiCalls = document.querySelector('input[name="api_calls"]').value;
+
+                htmx.ajax('POST', '/calc/messages', {
+                    target: '#calc-results',
+                    values: {
+                        input_message: inputMessage,
+                        output_message: outputMessage,
+                        api_calls: apiCalls
+                    }
+                });
+            }
+        });
+    </script>
+
+</body>
+
+</html>
