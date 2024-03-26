@@ -1,107 +1,201 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>LLM calculator</title>
+    <title>GPT API Pricing Calculator - Calculate Costs for Large Language Model API Calls</title>
+    <meta name="description"
+        content="Calculate the costs of using different large language models for your API calls. Estimate prices for input and output tokens and compare models.">
     <link rel="stylesheet" href="../static/css/bulma.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     <script src="../static/js/htmx.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .section {
+            padding: 2rem;
+        }
+
+        .box {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .label {
+            font-weight: bold;
+            color: #363636;
+        }
+
+        .textarea {
+            min-height: 150px;
+        }
+
+        .table {
+            background-color: #363636;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .table thead th {
+            background-color: #f5f5f5;
+            color: #363636;
+            font-weight: bold;
+        }
+
+        .table tbody tr:hover {
+            background-color: grey !important;
+        }
+
+        .faq {
+            margin-top: 2rem;
+        }
+
+        .faq .question {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .faq .answer {
+            margin-bottom: 1.5rem;
+        }
+    </style>
 </head>
 
 <body>
-    <section class="section">
-        <form>
-            <div class="columns">
-                <div class="column">
-                    <div class="field">
-                        <label class="label">Input</label>
-                        <div class="control">
-                            <textarea name="input_message" class="textarea" placeholder="Textarea"
-                                hx-post="/calc/tokens" hx-target="#calc-unit-results-input"
-                                hx-trigger="input">Here goes the input to the LLM</textarea>
+    <header>
+        <h1 class="title pt-5 has-text-centered has-text-grey-darker">GPT API Pricing Calculator</h1>
+        <h2 class="subtitle has-text-centered has-text-grey">Compare costs between large language models given input and
+            output tokens.</h2>
+    </header>
+    <main>
+        <section class="section">
+            <div class="container">
+                <div class="box">
+                    <form>
+                        <div class="columns">
+                            <div class="column">
+                                <div class="field">
+                                    <label class="label" for="input_message">Input</label>
+                                    <div class="control">
+                                        <textarea id="input_message" name="input_message" class="textarea"
+                                            placeholder="Enter input to the LLM" hx-post="/calc/tokens"
+                                            hx-target="#calc-unit-results-input"
+                                            hx-trigger="input">Here goes the input to the LLM</textarea>
+                                    </div>
+                                </div>
+                                <div id="calc-unit-results-input">
+                                    <p><strong class="has-text-grey-dark">{{ units[0].input }}</strong> <span
+                                            class="has-text-grey">{{ units[0].unit.value }}</span></p>
+                                    <p><strong class="has-text-grey-dark">{{ units[1].input }}</strong> <span
+                                            class="has-text-grey">{{ units[1].unit.value }}</span></p>
+                                </div>
+                            </div>
+                            <div class="column">
+                                <div class="field">
+                                    <label class="label" for="output_message">Output</label>
+                                    <div class="control">
+                                        <textarea id="output_message" name="output_message" class="textarea"
+                                            placeholder="Enter output of the LLM" hx-post="/calc/tokens"
+                                            hx-target="#calc-unit-results-input"
+                                            hx-trigger="input">Here goes the output of the LLM</textarea>
+                                    </div>
+                                </div>
+                                <div id="calc-unit-results-output">
+                                    <p><strong class="has-text-grey-dark">{{ units[0].output }}</strong> <span
+                                            class="has-text-grey">{{ units[0].unit.value }}</span>
+                                    </p>
+                                    <p><strong class="has-text-grey-dark">{{ units[1].output }}</strong> <span
+                                            class="has-text-grey">{{ units[1].unit.value }}</span>
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div id="calc-unit-results-input">
-                        <p>{{ units[0].input }} <span style="color: #95a5a6;">{{ units[0].unit.value }}</span></p>
-                        <p>{{ units[1].input }} <span style="color: #95a5a6;">{{ units[1].unit.value }}</span></p>
-                    </div>
-                </div>
-                <div class="column">
-                    <div class="field">
-                        <label class="label">Output</label>
-                        <div class="control">
-                            <textarea name="output_message" class="textarea" placeholder="Textarea"
-                                hx-post="/calc/tokens" hx-target="#calc-unit-results-input"
-                                hx-trigger="input">Here goes the output of the LLM</textarea>
+                        <div class="field">
+                            <label class="label" for="api_calls">Inferences</label>
+                            <div class="control">
+                                <input id="api_calls" class="input" value=1 type="number" name="api_calls"
+                                    placeholder="Enter number of inferences" hx-post="/calc/tokens"
+                                    hx-target="#calc-unit-results-input" hx-trigger="input" required>
+                            </div>
                         </div>
-                    </div>
-                    <div id="calc-unit-results-output">
-                        <p>{{ units[0].output }} <span style="color: #95a5a6;">{{ units[0].unit.value }}</span></p>
-                        <p>{{ units[1].output }} <span style="color: #95a5a6;">{{ units[1].unit.value }}</span></p>
-                    </div>
+                    </form>
                 </div>
             </div>
-            <div class="field">
-                <label class="label">Inferences</label>
-                <div class="control">
-                    <input class="input" value=1 type="number" name="api_calls" placeholder="API Calls"
-                        hx-post="/calc/tokens" hx-target="#calc-unit-results-input" hx-trigger="input" required>
+        </section>
+        <section class="section">
+            <div class="container">
+                <h2 class="title is-5 has-text-grey">LLM API Costs Comparison</h2>
+                <div class="table-container">
+                    <table class="table is-fullwidth is-hoverable is-striped">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Model</th>
+                                <th>Input Price</th>
+                                <th>Output Price</th>
+                                <th>Cost / Inference</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="calc-results">
+                            {% for cost in costs %}
+                            <tr>
+                                <td><img src="../static/images/{{ cost.model.provider.value }}.png" width="24"
+                                        style="background-color: white; border-radius: 100%; padding:4px;"
+                                        alt="{{ cost.model.provider.value }} logo" /></td>
+                                <td>{{ cost.model.name }}</td>
+                                <td>{{ "$%.5f"|format(cost.model.input_price) }} <span class="has-text-grey-light">/ 1k
+                                        {{ cost.model.unit.value }}</span></td>
+                                <td>{{ "$%.5f"|format(cost.model.output_price) }} <span class="has-text-grey-light">/ 1k
+                                        {{ cost.model.unit.value }}</span></td>
+                                <td>{{ "$%.5f"|format(cost.cost) }}</td>
+                                <td>{{ "$%.5f"|format(cost.total) }}</td>
+                            </tr> {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        </form>
-    </section>
-    <section class="section">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th></th>
-                    <th style="color: #95a5a6;">Model</th>
-                    <th style="color: #95a5a6;">Input Price</th>
-                    <th style="color: #95a5a6;">Output Price</th>
-                    <th style="color: #95a5a6;">Cost<br />/ Inference</th>
-                    <th style="color: #95a5a6;">Total</th>
-                </tr>
-            </thead>
-            <tbody id="calc-results">
-                {% for cost in costs %}
-                <tr>
-                    <td><img src="../static/images/{{ cost.model.provider.value }}.png" width="24"
-                            style="background-color: white; border-radius: 100%; padding:4px;" /></td>
-                    <td>{{ cost.model.name }}</td>
-                    <td>{{ "$%.5f"|format(cost.model.input_price) }} <span style="color: #95a5a6;">/ 1k {{
-                            cost.model.unit.value }}</span></td>
-                    <td>{{ "$%.5f"|format(cost.model.output_price) }} <span style="color: #95a5a6;">/ 1k {{
-                            cost.model.unit.value }}</span></td>
-                    <td>{{ "$%.5f"|format(cost.cost) }}</td>
-                    <td>{{ "$%.5f"|format(cost.total) }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-    </section>
-
-    <script>
-        document.body.addEventListener('htmx:afterSwap', function (event) {
-            if (event.detail.target.id === 'calc-unit-results-input' || event.detail.target.id === 'calc-unit-results-output') {
-                var inputMessage = document.querySelector('textarea[name="input_message"]').value;
-                var outputMessage = document.querySelector('textarea[name="output_message"]').value;
-                var apiCalls = document.querySelector('input[name="api_calls"]').value;
-
-                htmx.ajax('POST', '/calc/messages', {
-                    target: '#calc-results',
-                    values: {
-                        input_message: inputMessage,
-                        output_message: outputMessage,
-                        api_calls: apiCalls
-                    }
-                });
-            }
-        });
-    </script>
-
+        </section>
+        <section class="section">
+            <div class="container has-text-grey">
+                <h2 class="title is-5 has-text-grey">Frequently Asked Questions</h2>
+                <div class="faq">
+                    <div class="question">What is the GPT API Pricing calculator?</div>
+                    <div class="answer">The GPT API Pricing calculator is a tool that helps you estimate the costs of
+                        using
+                        different large language models for your inferences. It calculates the prices based on input and
+                        output
+                        tokens and provides a comparison of various models and providers.</div>
+                    <div class="question">How do I use the GPT API Pricing calculator?</div>
+                    <div class="answer">To use the LLM Calculator, simply enter your input and output messages in the
+                        respective text areas, specify the number of inferences, and the calculator will display the
+                        estimated costs for different language models automatically.</div>
+                    <div class="question">Which large language models are displayed here?</div>
+                    <div class="answer">Various large language model providers are displayed here. Picks are based on
+                        the top 10 of the <a href="https://huggingface.co/spaces/lmsys/chatbot-arena-leaderboard">LMSYS
+                            Chatbot Arena Leaderboard</a>.</div>
+                    <div class="question">Are the prices accurate?</div>
+                    <div class="answer">The prices shown here are estimates based on the information provided by the
+                        websites of the large language model providers. While we strive to keep the prices up to date,
+                        it's always recommended to refer to the official pricing documentation of each provider for the
+                        most accurate and current pricing information.</div>
+                    <div class="question">Is it safe to enter my prompts?</div>
+                    <div class="answer">Yes, it is safe to enter your prompt in the GPT API Pricing calculator. The
+                        prompts are solely used
+                        solely for calculating the costs of using different language models and is not stored or shared
+                        with any third parties. Your privacy and data security are our top priorities.</div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p class="has-text-centered has-text-grey">GPT API Pricing &copy; 2024. All rights reserved.</p>
+    </footer>
+    <script> document.body.addEventListener('htmx:afterSwap', function (event) { if (event.detail.target.id === 'calc-unit-results-input' || event.detail.target.id === 'calc-unit-results-output') { var inputMessage = document.querySelector('textarea[name="input_message"]').value; var outputMessage = document.querySelector('textarea[name="output_message"]').value; var apiCalls = document.querySelector('input[name="api_calls"]').value; htmx.ajax('POST', '/calc/messages', { target: '#calc-results', values: { input_message: inputMessage, output_message: outputMessage, api_calls: apiCalls } }); } }); </script>
 </body>
 
 </html>

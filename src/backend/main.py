@@ -25,8 +25,8 @@ def calculate_messages():
             <tr>
                 <td><img src="../static/images/{{ cost.model.provider.value }}.png" width="24" style="background-color: white; border-radius: 100%; padding:4px;"/></td>
                 <td>{{ cost.model.name }}</td>
-                <td>{{ "$%.5f"|format(cost.model.input_price) }} <span style="color: #95a5a6;">/ 1k {{ cost.model.unit.value }}</span></td>
-                <td>{{ "$%.5f"|format(cost.model.output_price) }} <span style="color: #95a5a6;">/ 1k {{ cost.model.unit.value }}</span></td>
+                <td>{{ "$%.5f"|format(cost.model.input_price) }} <span class="has-text-grey-light">/ 1k {{ cost.model.unit.value }}</span></td>
+                <td>{{ "$%.5f"|format(cost.model.output_price) }} <span class="has-text-grey-light">/ 1k {{ cost.model.unit.value }}</span></td>
                 <td>{{ "$%.5f"|format(cost.cost) }}</td>
                 <td>{{ "$%.5f"|format(cost.total) }}</td>
             </tr>
@@ -48,12 +48,12 @@ def calculate_tokens():
     return render_template_string(
         """
         <div id="calc-unit-results-input" hx-swap-oob="true">
-            <p>{{ units[0].input }} <span style="color: #95a5a6;">{{ units[0].unit.value }}</span></p>
-            <p>{{ units[1].input }} <span style="color: #95a5a6;">{{ units[1].unit.value }}</span></p>
+            <p><strong class="has-text-grey-dark">{{ units[0].input }}</strong> <span class="has-text-grey">{{ units[0].unit.value }}</span></p>
+            <p><strong class="has-text-grey-dark">{{ units[1].input }}</strong> <span class="has-text-grey">{{ units[1].unit.value }}</span></p>
         </div>
         <div id="calc-unit-results-output" hx-swap-oob="true">
-            <p>{{ units[0].output }} <span style="color: #95a5a6;">{{ units[0].unit.value }}</span></p>
-            <p>{{ units[1].output }} <span style="color: #95a5a6;">{{ units[1].unit.value }}</span></p>
+            <p><strong class="has-text-grey-dark">{{ units[0].output }}</strong> <span class="has-text-grey">{{ units[0].unit.value }}</span></p>
+            <p><strong class="has-text-grey-dark">{{ units[1].output }}</strong> <span class="has-text-grey">{{ units[1].unit.value }}</span></p>
         </div>
     """,
         units=units,
