@@ -1,0 +1,11 @@
+__pycache__
+__pycache__/
+__pycache__/*
+
+llms/__pycache__
+llms/__pycache__/
+llms/__pycache__/*
+
+env
+env/
+env/*
