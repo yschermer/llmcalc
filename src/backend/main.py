@@ -22,13 +22,32 @@ def calculate_messages():
     return render_template_string(
         """
         {% for cost in costs %}
-            <tr>
-                <td><img src="../static/images/{{ cost.model.provider.value }}.png" width="24" style="background-color: white; border-radius: 100%; padding:4px;"/></td>
-                <td>{{ cost.model.name }}</td>
-                <td>{{ "$%.5f"|format(cost.model.input_price) }} <span class="has-text-grey-light">/ 1k {{ cost.model.unit.value }}</span></td>
-                <td>{{ "$%.5f"|format(cost.model.output_price) }} <span class="has-text-grey-light">/ 1k {{ cost.model.unit.value }}</span></td>
-                <td>{{ "$%.5f"|format(cost.cost) }}</td>
-                <td>{{ "$%.5f"|format(cost.total) }}</td>
+            {% if cost.model.name.startswith("GPT") %}
+                {% set bgColor = "bg-emerald-800" %}
+            {% elif cost.model.name.startswith("Gemini") %}
+                {% set bgColor = "bg-teal-800" %}
+            {% elif cost.model.name.startswith("Claude") %}
+                {% set bgColor = "bg-cyan-800" %}
+            {% elif cost.model.name.startswith("Mistral") %}
+                {% set bgColor = "bg-sky-800" %}
+            {% elif cost.model.name.startswith("Command") %}
+                {% set bgColor = "bg-indigo-800" %}
+            {% else %}
+            {% endif %}
+            <tr class="{{ bgColor }}">
+                <td class="px-6 py-4 whitespace-nowrap"> <img
+                        src="../static/images/{{ cost.model.provider.value }}.png"
+                        alt="{{ cost.model.provider.value }} logo"
+                        class="h-6 w-6 rounded-full bg-gray-300 p-1"> </td>
+                <td class="px-6 py-4 whitespace-nowrap text-gray-300">{{ cost.model.name }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-gray-400">{{
+                    "$%.5f"|format(cost.model.input_price) }} <span class="text-gray-500">/ 1k {{
+                        cost.model.unit.value }}</span></td>
+                <td class="px-6 py-4 whitespace-nowrap text-gray-400">{{
+                    "$%.5f"|format(cost.model.output_price) }} <span class="text-gray-500">/ 1k {{
+                        cost.model.unit.value }}</span></td>
+                <td class="px-6 py-4 whitespace-nowrap text-gray-400">{{ "$%.5f"|format(cost.cost) }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-gray-300">{{ "$%.5f"|format(cost.total) }}</td>
             </tr>
         {% endfor %}
     """,
