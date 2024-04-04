@@ -59,6 +59,11 @@ def calculate_units(
         {"unit": Unit.characters, "input": input_characters, "output": output_characters},
     ]
 
+def get_llm_by_name(name: str):
+    for llm in llms:
+        if llm.name == name:
+            return llm
+    return None
 
 gpt_3_5_turbo = GPT3_5_Turbo()
 gpt_3_5_turbo_finetuned = GPT3_5_Turbo_Finetuned()
