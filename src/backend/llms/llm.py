@@ -145,16 +145,29 @@ class Gemini_Pro_1(LLMModel):
         super().__init__(
             "Gemini Pro 1.0",
             Provider.google,
-            Encoding.none,
-            Unit.characters,
+            Encoding.cl100k_base,
+            Unit.tokens,
             32000,
-            0.000125,
-            0.000375,
+            0.0005,
+            0.0015,
         )
 
-    # characters are only relevant for pricing here
-    def calculate_units(self, input_message: str, output_message: str) -> int:
-        return len(input_message), len(output_message)
+    def calculate_cost(self, input: float, output: float) -> float:
+        return self.input_price * (
+            input / 1000
+        ) + self.output_price * (output / 1000)
+    
+class Gemini_Pro_1_5(LLMModel):
+    def __init__(self):
+        super().__init__(
+            "Gemini Pro 1.5",
+            Provider.google,
+            Encoding.cl100k_base,
+            Unit.tokens,
+            1000000,
+            0.007,
+            0.021,
+        )
 
     def calculate_cost(self, input: float, output: float) -> float:
         return self.input_price * (

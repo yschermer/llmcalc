@@ -8,6 +8,7 @@ from llms.llm import (
     GPT3_5_Turbo_Finetuned,
     GPT4_Turbo,
     Gemini_Pro_1,
+    Gemini_Pro_1_5,
     Mistral_Small,
     Mistral_Medium,
     Mistral_Large,
@@ -50,9 +51,8 @@ def calculate_units(
     input_tokens, output_tokens = (
         gpt_3_5_turbo.calculate_units(input_message, output_message)
     )
-    input_characters, output_characters = (
-        gemini_pro_1.calculate_units(input_message, output_message)
-    )
+    input_characters = len(input_message)
+    output_characters = len(output_message)
 
     return [
         {"unit": Unit.tokens, "input": input_tokens, "output": output_tokens},
@@ -71,6 +71,7 @@ gpt_4_8k = GPT4_8K()
 gpt_4_32k = GPT4_32K()
 gpt_4_turbo = GPT4_Turbo()
 gemini_pro_1 = Gemini_Pro_1()
+gemini_pro_1_5 = Gemini_Pro_1_5()
 mistral_small = Mistral_Small()
 mistral_medium = Mistral_Medium()
 mistral_large = Mistral_Large()
@@ -90,6 +91,7 @@ llms = [
     gpt_3_5_turbo,
     gpt_3_5_turbo_finetuned,
     gemini_pro_1,
+    gemini_pro_1_5,
     claude_opus,
     claude_sonnet,
     claude_haiku,

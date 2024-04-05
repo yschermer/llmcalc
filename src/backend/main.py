@@ -5,6 +5,7 @@ from llms.calc import calculate_cost_by_messages, calculate_units
 app = Flask(__name__)
 app.secret_key = "BAD_SECRET_KEY"
 
+default_pinned_models = ["GPT-4 8K", "GPT-4 Turbo", "Claude Opus", "Gemini Pro 1.5"]
 
 @app.route("/")
 def index():
@@ -15,7 +16,7 @@ def index():
         "Here goes the input to the LLM", "Here goes the output of the LLM", 1
     )
     pinned_costs = [
-        cost for cost in costs if cost["model"].name in session.get("pinned_models", [])
+        cost for cost in costs if cost["model"].name in session.get("pinned_models", default_pinned_models)
     ]
     return render_template(
         "index.html", units=units, costs=costs, pinned_costs=pinned_costs
@@ -92,7 +93,7 @@ def calculate_tokens():
 @app.route("/pin-model", methods=["POST"])
 def pin_model():
     model = request.form.get("model")
-    pinned_models = session.get("pinned_models", [])
+    pinned_models = session.get("pinned_models", default_pinned_models)
 
     if model not in pinned_models:
         pinned_models.append(model)
@@ -104,7 +105,7 @@ def pin_model():
 @app.route("/unpin-model", methods=["POST"])
 def unpin_model():
     model = request.form.get("model")
-    pinned_models = session.get("pinned_models", [])
+    pinned_models = session.get("pinned_models", default_pinned_models)
 
     if model in pinned_models:
         pinned_models.remove(model)
@@ -118,9 +119,10 @@ def update_pinned_models():
     input_message = request.form.get("input_message")
     output_message = request.form.get("output_message")
     api_calls = int(request.form.get("api_calls"))
-    pinned_models = session.get("pinned_models", [])
+    pinned_models = session.get("pinned_models", default_pinned_models)
     costs = calculate_cost_by_messages(input_message, output_message, api_calls)
     pinned_costs = [cost for cost in costs if cost["model"].name in pinned_models]
+
     return render_template_string(
         """
         {% for cost in pinned_costs %}
