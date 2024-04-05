@@ -11,8 +11,6 @@
     <script src="../static/js/htmx.min.js"></script>
     <script src="../static/js/jquery-3.7.1.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <style>
         body {
             background: linear-gradient(135deg, #1f2937, #111827);
@@ -69,10 +67,6 @@
             color: #d1d5db;
             margin-bottom: 1.5rem;
         }
-
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24
-        }
     </style>
 </head>
 
@@ -84,7 +78,6 @@
     </header>
     <main>
         <form>
-            <input type="hidden" name="pinned_models" value="{{ pinned_models|join(',') }}">
             <section class="container mx-auto px-4 py-8">
                 <div class="bg-white shadow-md rounded-lg p-6">
                     <h1 class="text-xl font-semibold text-gray-100 mb-4">Enter your prompt</h1>
@@ -119,9 +112,9 @@
                     <div class="mb-4 mt-4">
                         <label for="api_calls" class="block text-gray-300 font-bold mb-2">Number of API calls</label>
                         <input id="api_calls"
-                            class="w-full px-3 py-2 text-gray-300 bg-gray-800 border rounded-lg focus:outline-none"
-                            name="api_calls" value="{{ api_calls }}" min="1" placeholder="Enter number of API calls"
-                            hx-post="/update" hx-target="body" hx-trigger="input" required>
+                            class="w-full px-3 py-2 text-gray-300 bg-gray-800 border rounded-lg focus:outline-none" name="api_calls" value="{{ api_calls }}" min="1"
+                            placeholder="Enter number of API calls" hx-post="/update" hx-target="body"
+                            hx-trigger="input" required>
                     </div>
                     <div class="mb-4">
                         <label for="pricing_unit" class="block text-gray-300 font-bold mb-2">Select price unit</label>
@@ -163,23 +156,14 @@
                                 <th scope="col"
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Total</th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Pin</th>
                             </tr>
                         </thead>
                         <tbody id="calc-results" class="bg-gray-900 divide-y divide-gray-700">
                             {% for cost in costs %}
-                            {% if pricing_unit.name == pricing_unit.thousand.name %}
+                            {%if pricing_unit.name == pricing_unit.thousand.name %}
                             {% set pricingUnitAbbreviation = "1K" %}
                             {% else %}
                             {% set pricingUnitAbbreviation = "1M" %}
-                            {% endif %}
-                            {% if loop.index > 1 and costs[loop.index - 2].model.name in pinned_models and cost.model.name not in pinned_models %}
-                            <tr>
-                                <td colspan="7" class="py-2 bg-gray-600">
-                                </td>
-                            </tr>
                             {% endif %}
                             <tr class="{{ bgColor }}">
                                 <td class="px-6 py-4 whitespace-nowrap"> <img
@@ -188,26 +172,14 @@
                                         class="h-8 w-8 rounded-full bg-gray-100 p-1"> </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-gray-300">{{ cost.model.name }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-gray-400">{{
-                                    "$%s"|format(cost.input_price) }} <span class="text-gray-500">/ {{
-                                        pricingUnitAbbreviation }} {{
+                                    "$%s"|format(cost.input_price) }} <span class="text-gray-500">/ {{ pricingUnitAbbreviation }} {{
                                         cost.model.unit.value }}</span></td>
                                 <td class="px-6 py-4 whitespace-nowrap text-gray-400">{{
-                                    "$%s"|format(cost.output_price) }} <span class="text-gray-500">/ {{
-                                        pricingUnitAbbreviation }} {{
+                                    "$%s"|format(cost.output_price) }} <span class="text-gray-500">/ {{ pricingUnitAbbreviation }} {{
                                         cost.model.unit.value }}</span></td>
                                 <td class="px-6 py-4 whitespace-nowrap text-gray-400">{{ "$%s"|format(cost.cost) }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-gray-300">{{ "$%s"|format(cost.total) }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <button class="text-blue-500 hover:text-blue-700" hx-post="/update" hx-target="body"
-                                        hx-vals='{"pinned_model": "{{ cost.model.name }}"}'>
-                                        {% if cost.model.name in pinned_models %}
-                                        <span class="material-symbols-outlined">keep_off</span>
-                                        {% else %}
-                                        <span class="material-symbols-outlined text-gray-400">keep</span>
-                                        {% endif %}
-                                    </button>
                                 </td>
                             </tr>
                             {% endfor %}

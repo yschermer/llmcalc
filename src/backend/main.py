@@ -1,82 +1,188 @@
-from flask import Flask, render_template_string, request, render_template
-from llms.calc import calculate_cost_by_messages, calculate_units
+from decimal import Decimal
+from flask import Flask, request, render_template
+from llms.llm import (
+    Command_Light,
+    Command_Light_Finetuned,
+    Command_R,
+    GPT3_5_Turbo,
+    GPT4_8K,
+    GPT4_32K,
+    GPT3_5_Turbo_Finetuned,
+    GPT4_Turbo,
+    Gemini_Pro_1,
+    Gemini_Pro_1_5,
+    Mistral_Small,
+    Mistral_Medium,
+    Mistral_Large,
+    Claude_Haiku,
+    Claude_Sonnet,
+    Claude_Opus,
+    Claude_2_1,
+    Claude_2_0,
+    Claude_Instant,
+    PricingUnit,
+)
+from llms.llm import Unit
 
 app = Flask(__name__)
+gpt_3_5_turbo = GPT3_5_Turbo()
+gpt_3_5_turbo_finetuned = GPT3_5_Turbo_Finetuned()
+gpt_4_8k = GPT4_8K()
+gpt_4_32k = GPT4_32K()
+gpt_4_turbo = GPT4_Turbo()
+gemini_pro_1 = Gemini_Pro_1()
+gemini_pro_1_5 = Gemini_Pro_1_5()
+mistral_small = Mistral_Small()
+mistral_medium = Mistral_Medium()
+mistral_large = Mistral_Large()
+claude_haiku = Claude_Haiku()
+claude_sonnet = Claude_Sonnet()
+claude_opus = Claude_Opus()
+claude_2_1 = Claude_2_1()
+claude_2_0 = Claude_2_0()
+claude_instant = Claude_Instant()
+command_r = Command_R()
+command_light = Command_Light()
+command_light_finetuned = Command_Light_Finetuned()
+llms = [
+    gpt_4_turbo,
+    gpt_4_32k,
+    gpt_4_8k,
+    gpt_3_5_turbo,
+    gpt_3_5_turbo_finetuned,
+    gemini_pro_1,
+    gemini_pro_1_5,
+    claude_opus,
+    claude_sonnet,
+    claude_haiku,
+    claude_2_1,
+    claude_2_0,
+    claude_instant,
+    mistral_large,
+    mistral_medium,
+    mistral_small,
+    command_r,
+    command_light,
+    command_light_finetuned,
+]
+
+
+def format_float(value):
+    value = Decimal(str(value))
+    if value == int(value):
+        return f"{value:.2f}"
+    else:
+        formatted_value = f"{value.normalize():f}"
+        if "." in formatted_value:
+            before_decimal, after_decimal = formatted_value.split(".")
+            if len(after_decimal) < 2:
+                formatted_value = f"{value:.2f}"
+            elif len(after_decimal) > 2:
+                formatted_value = f"{value:.6f}".rstrip("0")
+        return formatted_value
+
+
+def calculate_cost_by_messages(
+    input_message: str,
+    output_message: str,
+    api_calls: int = 1,
+    pricing_unit: PricingUnit = PricingUnit.thousand,
+    pinned_models: list[str] = [],
+) -> list[dict[str, float]]:
+    costs = []
+    for llm in llms:
+        input, output = llm.calculate_tokens(input_message, output_message)
+        cost = llm.calculate_cost(input, output)
+        total = cost * api_calls
+        costs.append(
+            {
+                "model": llm,
+                "input_price": format_float(llm.input_price * pricing_unit.value),
+                "output_price": format_float(llm.output_price * pricing_unit.value),
+                "cost": format_float(cost),
+                "total": format_float(total),
+                "input": input,
+                "output": output,
+            }
+        )
+
+    costs.sort(key=lambda x: pinned_models.index(x["model"].name) if x["model"].name in pinned_models else len(pinned_models))
+    return costs
+
+
+def calculate_tokens_and_characters(
+    input_message: str, output_message: str
+) -> list[dict[str, float]]:
+    input_tokens, output_tokens = gpt_3_5_turbo.calculate_tokens(
+        input_message, output_message
+    )
+
+    return [
+        {"unit": Unit.tokens, "input": input_tokens, "output": output_tokens},
+        {
+            "unit": Unit.characters,
+            "input": len(input_message),
+            "output": len(output_message),
+        },
+    ]
 
 
 @app.route("/")
 def index():
-    units = calculate_units("Here goes the input to the LLM", "Here goes the output of the LLM")
-    costs = calculate_cost_by_messages("Here goes the input to the LLM", "Here goes the output of the LLM", 1)
-    return render_template("index.html", units=units, costs=costs)
+    input_message = "Here goes the input to the LLM"
+    output_message = "Here goes the output of the LLM"
+    api_calls = 1
+    pricing_unit = PricingUnit["million"]
+    units = calculate_tokens_and_characters(input_message, output_message)
+    costs = calculate_cost_by_messages(
+        input_message, output_message, api_calls, pricing_unit
+    )
+    pinned_models = []
 
-
-@app.route("/calc/messages", methods=["POST"])
-def calculate_messages():
-    input_message = request.form.get("input_message")
-    output_message = request.form.get("output_message")
-    api_calls = int(request.form.get("api_calls"))
-
-    costs = calculate_cost_by_messages(input_message, output_message, api_calls)
-
-    return render_template_string(
-        """
-        {% for cost in costs %}
-            {% if cost.model.name.startswith("GPT") %}
-                {% set bgColor = "bg-emerald-800" %}
-            {% elif cost.model.name.startswith("Gemini") %}
-                {% set bgColor = "bg-teal-800" %}
-            {% elif cost.model.name.startswith("Claude") %}
-                {% set bgColor = "bg-cyan-800" %}
-            {% elif cost.model.name.startswith("Mistral") %}
-                {% set bgColor = "bg-sky-800" %}
-            {% elif cost.model.name.startswith("Command") %}
-                {% set bgColor = "bg-indigo-800" %}
-            {% else %}
-            {% endif %}
-            <tr class="{{ bgColor }}">
-                <td class="px-6 py-4 whitespace-nowrap"> <img
-                        src="../static/images/{{ cost.model.provider.value }}.png"
-                        alt="{{ cost.model.provider.value }} logo"
-                        class="h-6 w-6 rounded-full bg-gray-300 p-1"> </td>
-                <td class="px-6 py-4 whitespace-nowrap text-gray-300">{{ cost.model.name }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-gray-400">{{
-                    "$%.5f"|format(cost.model.input_price) }} <span class="text-gray-500">/ 1k {{
-                        cost.model.unit.value }}</span></td>
-                <td class="px-6 py-4 whitespace-nowrap text-gray-400">{{
-                    "$%.5f"|format(cost.model.output_price) }} <span class="text-gray-500">/ 1k {{
-                        cost.model.unit.value }}</span></td>
-                <td class="px-6 py-4 whitespace-nowrap text-gray-400">{{ "$%.5f"|format(cost.cost) }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-gray-300">{{ "$%.5f"|format(cost.total) }}</td>
-            </tr>
-        {% endfor %}
-    """,
-        costs=costs,
+    return render_template(
+        "index.html",
+        input_message=input_message,
+        output_message=output_message,
         api_calls=api_calls,
+        pricing_unit=pricing_unit,
+        units=units,
+        costs=costs,
+        pinned_models=pinned_models
     )
 
 
-@app.route("/calc/tokens", methods=["POST"])
-def calculate_tokens():
-    input = request.form.get("input_message")
-    output = request.form.get("output_message")
-    api_calls = int(request.form.get("api_calls"))
+@app.route("/update", methods=["POST"])
+def update_page():
+    input_message = request.form.get("input_message")
+    output_message = request.form.get("output_message")
+    try:
+        api_calls = int(request.form.get("api_calls"))
+    except ValueError:
+        api_calls = int(request.form.get("api_calls")[:-1])
+    pricing_unit = PricingUnit[request.form.get("pricing_unit")]
 
-    units = calculate_units(input, output)
+    pinned_model = request.form.get("pinned_model")
+    pinned_models = request.form.get("pinned_models").split(",")
+    if pinned_model:
+        if pinned_model not in pinned_models:
+            pinned_models.append(pinned_model)
+        else:
+            pinned_models.remove(pinned_model)
 
-    return render_template_string(
-        """
-        <div id="calc-unit-results-input" hx-swap-oob="true">
-            <p><strong class="has-text-grey-dark">{{ units[0].input }}</strong> <span class="has-text-grey">{{ units[0].unit.value }}</span></p>
-            <p><strong class="has-text-grey-dark">{{ units[1].input }}</strong> <span class="has-text-grey">{{ units[1].unit.value }}</span></p>
-        </div>
-        <div id="calc-unit-results-output" hx-swap-oob="true">
-            <p><strong class="has-text-grey-dark">{{ units[0].output }}</strong> <span class="has-text-grey">{{ units[0].unit.value }}</span></p>
-            <p><strong class="has-text-grey-dark">{{ units[1].output }}</strong> <span class="has-text-grey">{{ units[1].unit.value }}</span></p>
-        </div>
-    """,
-        units=units,
+    units = calculate_tokens_and_characters(input_message, output_message)
+    costs = calculate_cost_by_messages(
+        input_message, output_message, api_calls, pricing_unit, pinned_models
+    )
+
+    return render_template(
+        "index.html",
+        input_message=input_message,
+        output_message=output_message,
         api_calls=api_calls,
+        pricing_unit=pricing_unit,
+        units=units,
+        costs=costs,
+        pinned_models=pinned_models
     )
 
 

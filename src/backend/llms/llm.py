@@ -2,6 +2,10 @@ import tiktoken
 from enum import Enum
 
 
+class PricingUnit(Enum):
+    thousand = 1000
+    million = 1000000
+
 class Unit(Enum):
     characters = "chars"
     tokens = "tokens"
@@ -39,7 +43,7 @@ class LLMModel:
         self.input_price = input_price
         self.output_price = output_price
 
-    def calculate_units(self, input_message: str, output_message: str) -> int:
+    def calculate_tokens(self, input_message: str, output_message: str) -> int:
         enc = tiktoken.get_encoding(self.encoding.value)
         input = len(enc.encode(input_message))
         output = len(enc.encode(output_message))
@@ -58,14 +62,12 @@ class GPT3_5_Turbo(LLMModel):
             Encoding.cl100k_base,
             Unit.tokens,
             16000,
-            0.0005,
-            0.0015,
+            0.0000005,
+            0.0000015,
         )
 
     def calculate_cost(self, input: float, output: float) -> float:
-        return self.input_price * (
-            input / 1000
-        ) + self.output_price * (output / 1000)
+        return self.input_price * input + self.output_price * output
 
 
 class GPT3_5_Turbo_Finetuned(LLMModel):
@@ -76,14 +78,12 @@ class GPT3_5_Turbo_Finetuned(LLMModel):
             Encoding.cl100k_base,
             Unit.tokens,
             4000,
-            0.003,
-            0.006,
+            0.0000030,
+            0.0000060,
         )
 
     def calculate_cost(self, input: float, output: float) -> float:
-        return self.input_price * (
-            input / 1000
-        ) + self.output_price * (output / 1000)
+        return self.input_price * input + self.output_price * output
 
 
 class GPT4_8K(LLMModel):
@@ -94,14 +94,12 @@ class GPT4_8K(LLMModel):
             Encoding.cl100k_base,
             Unit.tokens,
             8000,
-            0.03,
-            0.06,
+            0.0000300,
+            0.0000600,
         )
 
     def calculate_cost(self, input: float, output: float) -> float:
-        return self.input_price * (
-            input / 1000
-        ) + self.output_price * (output / 1000)
+        return self.input_price * input + self.output_price * output
 
 
 class GPT4_32K(LLMModel):
@@ -112,14 +110,12 @@ class GPT4_32K(LLMModel):
             Encoding.cl100k_base,
             Unit.tokens,
             32000,
-            0.06,
-            0.12,
+            0.0000600,
+            0.0001200,
         )
 
     def calculate_cost(self, input: float, output: float) -> float:
-        return self.input_price * (
-            input / 1000
-        ) + self.output_price * (output / 1000)
+        return self.input_price * input + self.output_price * output
 
 
 class GPT4_Turbo(LLMModel):
@@ -130,14 +126,12 @@ class GPT4_Turbo(LLMModel):
             Encoding.cl100k_base,
             Unit.tokens,
             128000,
-            0.01,
-            0.03,
+            0.0000100,
+            0.0000300,
         )
 
     def calculate_cost(self, input: float, output: float) -> float:
-        return self.input_price * (
-            input / 1000
-        ) + self.output_price * (output / 1000)
+        return self.input_price * input + self.output_price * output
 
 
 class Gemini_Pro_1(LLMModel):
@@ -145,21 +139,31 @@ class Gemini_Pro_1(LLMModel):
         super().__init__(
             "Gemini Pro 1.0",
             Provider.google,
-            Encoding.none,
-            Unit.characters,
+            Encoding.cl100k_base,
+            Unit.tokens,
             32000,
-            0.000125,
-            0.000375,
+            0.00000050,
+            0.00000150,
         )
 
-    # characters are only relevant for pricing here
-    def calculate_units(self, input_message: str, output_message: str) -> int:
-        return len(input_message), len(output_message)
+    def calculate_cost(self, input: float, output: float) -> float:
+        return self.input_price * input + self.output_price * output
+    
+
+class Gemini_Pro_1_5(LLMModel):
+    def __init__(self):
+        super().__init__(
+            "Gemini Pro 1.5",
+            Provider.google,
+            Encoding.cl100k_base,
+            Unit.tokens,
+            1000000,
+            0.00000700,
+            0.00002100,
+        )
 
     def calculate_cost(self, input: float, output: float) -> float:
-        return self.input_price * (
-            input / 1000
-        ) + self.output_price * (output / 1000)
+        return self.input_price * input + self.output_price * output
 
 
 class Mistral_Small(LLMModel):
@@ -170,14 +174,12 @@ class Mistral_Small(LLMModel):
             Encoding.cl100k_base,
             Unit.tokens,
             32000,
-            0.002,
-            0.006,
+            0.0000020,
+            0.0000060,
         )
 
     def calculate_cost(self, input: float, output: float) -> float:
-        return self.input_price * (
-            input / 1000
-        ) + self.output_price * (output / 1000)
+        return self.input_price * input + self.output_price * output
 
 
 class Mistral_Medium(LLMModel):
@@ -188,14 +190,12 @@ class Mistral_Medium(LLMModel):
             Encoding.cl100k_base,
             Unit.tokens,
             32000,
-            0.0027,
-            0.0081,
+            0.0000027,
+            0.0000081,
         )
 
     def calculate_cost(self, input: float, output: float) -> float:
-        return self.input_price * (
-            input / 1000
-        ) + self.output_price * (output / 1000)
+        return self.input_price * input + self.output_price * output
 
 
 class Mistral_Large(LLMModel):
@@ -206,68 +206,60 @@ class Mistral_Large(LLMModel):
             Encoding.cl100k_base,
             Unit.tokens,
             32000,
-            0.008,
-            0.024,
+            0.0000080,
+            0.0000240,
         )
 
     def calculate_cost(self, input: float, output: float) -> float:
-        return self.input_price * (
-            input / 1000
-        ) + self.output_price * (output / 1000)
+        return self.input_price * input + self.output_price * output
 
 
 class Claude_Haiku(LLMModel):
     def __init__(self):
         super().__init__(
-            "Claude Haiku",
+            "Claude 3 Haiku",
             Provider.anthropic,
             Encoding.cl100k_base,
             Unit.tokens,
             200000,
-            0.00025,
-            0.00125,
+            0.00000025,
+            0.00000125,
         )
 
     def calculate_cost(self, input: float, output: float) -> float:
-        return self.input_price * (
-            input / 1000
-        ) + self.output_price * (output / 1000)
+        return self.input_price * input + self.output_price * output
 
 
 class Claude_Sonnet(LLMModel):
     def __init__(self):
         super().__init__(
-            "Claude Sonnet",
+            "Claude 3 Sonnet",
             Provider.anthropic,
             Encoding.cl100k_base,
             Unit.tokens,
             200000,
-            0.003,
-            0.015,
+            0.0000030,
+            0.0000150,
         )
 
     def calculate_cost(self, input: float, output: float) -> float:
-        return self.input_price * (
-            input / 1000
-        ) + self.output_price * (output / 1000)
+        return self.input_price * input + self.output_price * output
 
 
 class Claude_Opus(LLMModel):
     def __init__(self):
         super().__init__(
-            "Claude Opus",
+            "Claude 3 Opus",
             Provider.anthropic,
             Encoding.cl100k_base,
             Unit.tokens,
             200000,
-            0.015,
-            0.075,
+            0.0000150,
+            0.0000750,
         )
 
     def calculate_cost(self, input: float, output: float) -> float:
-        return self.input_price * (
-            input / 1000
-        ) + self.output_price * (output / 1000)
+        return self.input_price * input + self.output_price * output
 
 
 class Claude_2_1(LLMModel):
@@ -278,14 +270,12 @@ class Claude_2_1(LLMModel):
             Encoding.cl100k_base,
             Unit.tokens,
             200000,
-            0.008,
-            0.024,
+            0.0000080,
+            0.0000240,
         )
 
     def calculate_cost(self, input: float, output: float) -> float:
-        return self.input_price * (
-            input / 1000
-        ) + self.output_price * (output / 1000)
+        return self.input_price * input + self.output_price * output
 
 
 class Claude_2_0(LLMModel):
@@ -296,14 +286,12 @@ class Claude_2_0(LLMModel):
             Encoding.cl100k_base,
             Unit.tokens,
             100000,
-            0.008,
-            0.024,
+            0.0000080,
+            0.0000240,
         )
 
     def calculate_cost(self, input: float, output: float) -> float:
-        return self.input_price * (
-            input / 1000
-        ) + self.output_price * (output / 1000)
+        return self.input_price * input + self.output_price * output
 
 
 class Claude_Instant(LLMModel):
@@ -314,14 +302,12 @@ class Claude_Instant(LLMModel):
             Encoding.cl100k_base,
             Unit.tokens,
             100000,
-            0.0008,
-            0.0024,
+            0.0000008,
+            0.0000024,
         )
 
     def calculate_cost(self, input: float, output: float) -> float:
-        return self.input_price * (
-            input / 1000
-        ) + self.output_price * (output / 1000)
+        return self.input_price * input + self.output_price * output
 
 
 class Command_R(LLMModel):
@@ -332,14 +318,12 @@ class Command_R(LLMModel):
             Encoding.cl100k_base,
             Unit.tokens,
             128000,
-            0.0005,
-            0.0015,
+            0.0000005,
+            0.0000015,
         )
 
     def calculate_cost(self, input: float, output: float) -> float:
-        return self.input_price * (
-            input / 1000
-        ) + self.output_price * (output / 1000)
+        return self.input_price * input + self.output_price * output
 
 
 class Command_Light(LLMModel):
@@ -350,14 +334,12 @@ class Command_Light(LLMModel):
             Encoding.cl100k_base,
             Unit.tokens,
             8000,
-            0.0003,
-            0.0006,
+            0.0000003,
+            0.0000006,
         )
 
     def calculate_cost(self, input: float, output: float) -> float:
-        return self.input_price * (
-            input / 1000
-        ) + self.output_price * (output / 1000)
+        return self.input_price * input + self.output_price * output
 
 
 class Command_Light_Finetuned(LLMModel):
@@ -368,11 +350,9 @@ class Command_Light_Finetuned(LLMModel):
             Encoding.cl100k_base,
             Unit.tokens,
             8000,
-            0.0003,
-            0.0006,
+            0.0000003,
+            0.0000006,
         )
 
     def calculate_cost(self, input: float, output: float) -> float:
-        return self.input_price * (
-            input / 1000
-        ) + self.output_price * (output / 1000)
+        return self.input_price * input + self.output_price * output
