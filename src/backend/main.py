@@ -134,10 +134,10 @@ def index():
     api_calls = 1
     pricing_unit = PricingUnit["million"]
     units = calculate_tokens_and_characters(input_message, output_message)
+    pinned_models = ["GPT-4 Turbo", "Claude 3 Opus", "Gemini Pro 1.5"]
     costs = calculate_cost_by_messages(
-        input_message, output_message, api_calls, pricing_unit
+        input_message, output_message, api_calls, pricing_unit, pinned_models
     )
-    pinned_models = []
 
     return render_template(
         "index.html",
