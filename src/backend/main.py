@@ -68,18 +68,14 @@ llms = [
 
 
 def format_float(value):
-    value = Decimal(str(value))
-    if value == int(value):
-        return f"{value:.2f}"
+    new_value = f"{value:.6f}".rstrip("0").rstrip(".").lstrip("0") or "0"
+    if "." not in new_value:
+        new_value += ".00"
     else:
-        formatted_value = f"{value.normalize():f}"
-        if "." in formatted_value:
-            before_decimal, after_decimal = formatted_value.split(".")
-            if len(after_decimal) < 2:
-                formatted_value = f"{value:.2f}"
-            elif len(after_decimal) > 2:
-                formatted_value = f"{value:.6f}".rstrip("0")
-        return formatted_value
+        # prepend 0 if the number is less than 1
+        if new_value.startswith("."):
+            new_value = "0" + new_value
+    return new_value
 
 
 def calculate_cost_by_messages(
@@ -106,7 +102,13 @@ def calculate_cost_by_messages(
             }
         )
 
-    costs.sort(key=lambda x: pinned_models.index(x["model"].name) if x["model"].name in pinned_models else len(pinned_models))
+    costs.sort(
+        key=lambda x: (
+            pinned_models.index(x["model"].name)
+            if x["model"].name in pinned_models
+            else len(pinned_models)
+        )
+    )
     return costs
 
 
@@ -147,7 +149,7 @@ def index():
         pricing_unit=pricing_unit,
         units=units,
         costs=costs,
-        pinned_models=pinned_models
+        pinned_models=pinned_models,
     )
 
 
@@ -182,7 +184,7 @@ def update_page():
         pricing_unit=pricing_unit,
         units=units,
         costs=costs,
-        pinned_models=pinned_models
+        pinned_models=pinned_models,
     )
 
 
