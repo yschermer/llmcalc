@@ -17,11 +17,11 @@ class Encoding(Enum):
 
 
 class Provider(Enum):
-    openai = "OpenAI"
-    anthropic = "Anthropic"
-    google = "Google"
-    mistral = "Mistral"
-    cohere = "Cohere"
+    openai = "openai"
+    anthropic = "anthropic"
+    google = "google"
+    mistral = "mistral"
+    cohere = "cohere"
 
 
 class LLMModel:
