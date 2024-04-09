@@ -71,10 +71,12 @@ def format_float(value):
     new_value = f"{value:.6f}".rstrip("0").rstrip(".").lstrip("0") or "0"
     if "." not in new_value:
         new_value += ".00"
-    else:
-        # prepend 0 if the number is less than 1
-        if new_value.startswith("."):
-            new_value = "0" + new_value
+    elif new_value[-2] == ".":
+        new_value += "0"
+
+    if new_value.startswith("."):
+        new_value = "0" + new_value
+    
     return new_value
 
 
@@ -131,8 +133,8 @@ def calculate_tokens_and_characters(
 
 @app.route("/")
 def index():
-    input_message = "Here goes the input to the LLM"
-    output_message = "Here goes the output of the LLM"
+    input_message = ""
+    output_message = ""
     api_calls = 1
     pricing_unit = PricingUnit["million"]
     units = calculate_tokens_and_characters(input_message, output_message)

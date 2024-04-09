@@ -4,258 +4,299 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>GPT API Pricing Calculator - Calculate Costs for Large Language Model API Calls</title>
+    <title>LLM API Pricing Calculator - Calculate Costs for Large Language Model API Calls</title>
     <meta name="description"
         content="Calculate the costs of using different large language models for your API calls. Estimate prices for input and output tokens and compare models.">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="../static/js/htmx.min.js"></script>
     <script src="../static/js/jquery-3.7.1.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+        rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <style>
-        body {
-            background: linear-gradient(135deg, #1f2937, #111827);
-            color: #f9fafb;
-        }
-
-        .bg-white {
-            background: linear-gradient(135deg, #374151, #1f2937);
-        }
-
         .selected {
-            border-color: #60a5fa !important;
+            border-color: #1d4ed8 !important;
         }
 
-        .text-gray-800 {
-            color: #e5e7eb;
-        }
-
-        .text-gray-600 {
-            color: #d1d5db;
-        }
-
-        .text-gray-700 {
-            color: #9ca3af;
-        }
-
-        .border {
-            border-color: #4b5563;
-        }
-
-        .bg-gray-50 {
-            background: linear-gradient(135deg, #374151, #1f2937);
-        }
-
-        .text-gray-500 {
-            color: #6b7280;
-        }
-
-        .divide-gray-200>*+* {
-            border-color: #374151;
-        }
-
-        .hover\:bg-gray-100:hover {
-            background: linear-gradient(135deg, #4b5563, #374151);
-        }
-
-        .faq .question {
-            font-weight: 600;
-            color: #e5e7eb;
-            margin-bottom: 0.5rem;
-        }
-
-        .faq .answer {
-            color: #d1d5db;
-            margin-bottom: 1.5rem;
-        }
-
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24
+        .price {
+            font-family: "Roboto", sans-serif;
+            font-weight: 400;
+            font-style: normal;
         }
     </style>
 </head>
 
-<body class="font-inter">
-    <header class="container mx-auto px-4 pt-8">
-        <h1 class="text-3xl font-bold text-gray-100">GPT API Pricing Calculator</h1>
-        <h2 class="text-xl text-gray-300 mt-2">Compare costs between different large language models based on
-            input/output tokens.</h2>
+<body class="font-inter bg-gray-100">
+    <header class="container mx-auto text-center px-4 pt-8">
+        <h1 class="text-3xl font-bold text-gray-900">LLM API Pricing Calculator</h1>
+        <h2 class="text-xl text-gray-500 mt-2">Compare costs between the most popular large language models based on
+            an input prompt and output.</h2>
     </header>
     <main>
-        <form>
-            <input type="hidden" name="pinned_models" value="{{ pinned_models|join(',') }}">
-            <section class="container mx-auto px-4 py-8">
+        <form> <input type="hidden" name="pinned_models" value="{{ pinned_models|join(',') }}">
+            <section class="container w-4/6 mx-auto px-4 py-8">
                 <div class="bg-white shadow-md rounded-lg p-6">
-                    <h1 class="text-xl font-semibold text-gray-100 mb-4">Enter your prompt</h1>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="input_message" class="block text-gray-300 font-bold mb-2">Input</label>
-                            <textarea id="input_message" name="input_message"
-                                class="w-full px-3 py-2 text-gray-300 bg-gray-800 border rounded-lg focus:outline-none"
-                                rows="4" placeholder="Enter input to the LLM" hx-post="/update" hx-target="body"
-                                hx-trigger="input">{{ input_message }}</textarea>
-                            <div id="calc-unit-results-input">
-                                <p><strong class="has-text-grey-dark">{{ units[0].input }}</strong> <span
-                                        class="has-text-grey">{{ units[0].unit.value }}</span></p>
-                                <p><strong class="has-text-grey-dark">{{ units[1].input }}</strong> <span
-                                        class="has-text-grey">{{ units[1].unit.value }}</span></p>
+                        <div> <label for="input_message" class="block text-gray-900 font-medium mb-2">Input Prompt<br />
+                                <span class="text-gray-500 text-sm">This is the system prompt followed by additional
+                                    user or assistant messages.</span>
+                            </label> <textarea id="input_message" name="input_message"
+                                class="w-full px-3 py-2 text-gray-800 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                rows="4" placeholder="Enter input prompt to the LLM..." hx-post="/update"
+                                hx-target="body" hx-trigger="input delay:200ms">{{ input_message }}</textarea>
+                            <div id="calc-unit-results-input" class="text-gray-600 text-sm">
+                                <p>{{ units[0].input }} <span>{{ units[0].unit.value }}</span></p>
+                                <p>{{ units[1].input }} <span>{{ units[1].unit.value }}</span></p>
                             </div>
                         </div>
-                        <div>
-                            <label for="output_message" class="block text-gray-300 font-bold mb-2">Output</label>
-                            <textarea id="output_message" name="output_message"
-                                class="w-full px-3 py-2 text-gray-300 bg-gray-800 border rounded-lg focus:outline-none"
-                                rows="4" placeholder="Enter output of the LLM" hx-post="/update" hx-target="body"
-                                hx-trigger="input">{{ output_message }}</textarea>
-                            <div id="calc-unit-results-output">
-                                <p><strong class="has-text-grey-dark">{{ units[0].output }}</strong> <span
-                                        class="has-text-grey">{{ units[0].unit.value }}</span></p>
-                                <p><strong class="has-text-grey-dark">{{ units[1].output }}</strong> <span
-                                        class="has-text-grey">{{ units[1].unit.value }}</span></p>
+                        <div> <label for="output_message" class="block text-gray-900 font-medium mb-2">Output
+                                <br />
+                                <span class="text-gray-500 text-sm">This is what the LLM has generated given the input
+                                    prompt.</span>
+                            </label> <textarea id="output_message" name="output_message"
+                                class="w-full px-3 py-2 text-gray-800 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                rows="4" placeholder="Enter output of the LLM..." hx-post="/update" hx-target="body"
+                                hx-trigger="input delay:200ms">{{ output_message }}</textarea>
+                            <div id="calc-unit-results-output" class="text-gray-600 text-sm">
+                                <p>{{ units[0].output }} <span>{{ units[0].unit.value }}</span></p>
+                                <p>{{ units[1].output }} <span>{{ units[1].unit.value }}</span></p>
                             </div>
                         </div>
                     </div>
-                    <div class="mb-4 mt-4">
-                        <label for="api_calls" class="block text-gray-300 font-bold mb-2">Number of API calls</label>
-                        <input id="api_calls"
-                            class="w-full px-3 py-2 text-gray-300 bg-gray-800 border rounded-lg focus:outline-none"
+                    <hr class="mb-4 mt-4" />
+                    <div class="mb-4 mt-4"> <label for="api_calls"
+                            class="block text-gray-900 font-medium font-bold mb-2">Number of
+                            API calls
+                            <br />
+                            <span class="text-gray-500 text-sm">How many times the LLM API will be called with the input
+                                prompt to generate the output.</span>
+                        </label> <input id="api_calls"
+                            class="w-1/5 px-3 py-2 text-gray-800 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             name="api_calls" value="{{ api_calls }}" min="1" placeholder="Enter number of API calls"
-                            hx-post="/update" hx-target="body" hx-trigger="input" required>
-                    </div>
-                    <div class="mb-4">
-                        <label for="pricing_unit" class="block text-gray-300 font-bold mb-2">Select price unit</label>
-                        <select id="pricing_unit" name="pricing_unit"
-                            class="w-full px-3 py-2 text-gray-300 bg-gray-800 border rounded-lg focus:outline-none"
-                            hx-post="/update" hx-target="body" hx-trigger="change" required>
-                            {% if pricing_unit.name == pricing_unit.thousand.name %}
-                            <option value="{{ pricing_unit.thousand.name }}" selected>Per 1K tokens</option>
-                            <option value="{{ pricing_unit.million.name }}">Per 1M tokens</option>
-                            {% else %}
-                            <option value="{{ pricing_unit.thousand.name }}">Per 1K tokens</option>
-                            <option value="{{ pricing_unit.million.name }}" selected>Per 1M tokens</option>
-                            {% endif %}
-                        </select>
-                    </div>
+                            hx-post="/update" hx-target="body" hx-trigger="input delay:200ms" required> </div>
+                    <hr class="mb-4" />
+                    <div class="mb-4"> <label for="pricing_unit"
+                            class="block text-gray-900 font-medium font-bold mb-2">Price Unit
+                            <br />
+                            <span class="text-gray-500 text-sm">Select 1K or 1M tokens as the unit of price.</span>
+                        </label> <select id="pricing_unit" name="pricing_unit"
+                            class="w-1/5 px-3 py-2 text-gray-800 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            hx-post="/update" hx-target="body" hx-trigger="change" required> {% if pricing_unit.name ==
+                            pricing_unit.thousand.name %} <option value="{{ pricing_unit.thousand.name }}" selected>Per
+                                1K tokens</option>
+                            <option value="{{ pricing_unit.million.name }}">Per 1M tokens</option> {% else %} <option
+                                value="{{ pricing_unit.thousand.name }}">Per 1K tokens</option>
+                            <option value="{{ pricing_unit.million.name }}" selected>Per 1M tokens</option> {% endif %}
+                        </select> </div>
                 </div>
             </section>
             <section class="container mx-auto px-4 py-8">
-                <h2 class="text-xl font-semibold text-gray-100 mb-4">LLM API Costs Comparison</h2>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-700">
-                        <thead class="bg-gray-800">
+                    <table class="w-4/6 mx-auto divide-y divide-gray-200 rounded-lg border-2"> {% if pricing_unit.name
+                        ==
+                        pricing_unit.thousand.name %} {% set pricingUnitAbbreviation = "1K" %} {% else %} {% set
+                        pricingUnitAbbreviation = "1M" %} {% endif %}
+                        <thead class="bg-gray-900">
                             <tr>
                                 <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-4 py-3 text-left text-xs font-medium text-gray-100 uppercase tracking-wider">
                                 </th>
                                 <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-100 uppercase tracking-wider">
                                     Model</th>
                                 <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Input Price</th>
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-100 uppercase tracking-wider">
+                                    Input Price /<br />{{ pricingUnitAbbreviation }} {{ costs[0].model.unit.value }}
+                                </th>
                                 <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Output Price</th>
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-100 uppercase tracking-wider">
+                                    Output Price /<br />{{ pricingUnitAbbreviation }} {{ costs[0].model.unit.value }}
+                                </th>
                                 <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Cost / API call</th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-100 uppercase tracking-wider">
                                     Total</th>
                                 <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Pin</th>
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-100 uppercase tracking-wider">
+                                </th>
                             </tr>
                         </thead>
-                        <tbody id="calc-results" class="bg-gray-900 divide-y divide-gray-700">
-                            {% for cost in costs %}
-                            {% if pricing_unit.name == pricing_unit.thousand.name %}
-                            {% set pricingUnitAbbreviation = "1K" %}
-                            {% else %}
-                            {% set pricingUnitAbbreviation = "1M" %}
-                            {% endif %}
-                            {% if loop.index > 1 and costs[loop.index - 2].model.name in pinned_models and cost.model.name not in pinned_models %}
-                            <tr>
-                                <td colspan="7" class="py-2 bg-gray-600">
-                                </td>
-                            </tr>
-                            {% endif %}
-                            <tr class="{{ bgColor }}">
-                                <td class="px-6 py-4 whitespace-nowrap"> <img
+                        <tbody id="calc-results" class="bg-white divide-y divide-gray-200"> {% for cost in costs %} {%
+                            if loop.index > 1 and costs[loop.index - 2].model.name in pinned_models and cost.model.name
+                            not in pinned_models %} <tr>
+                                <td colspan="7" class="py-4 bg-gray-700"> </td>
+                            </tr> {% endif %}
+                            <tr class="even:bg-gray-100">
+                                <td class="px-4 py-4 whitespace-nowrap" align="center"> <img
                                         src="../static/images/{{ cost.model.provider.value }}.png"
-                                        alt="{{ cost.model.provider.value }} logo"
-                                        class="h-8 w-8 rounded-full bg-gray-100 p-1"> </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-gray-300">{{ cost.model.name }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-gray-400">{{
-                                    "$%s"|format(cost.input_price) }} <span class="text-gray-500">/ {{
-                                        pricingUnitAbbreviation }} {{
-                                        cost.model.unit.value }}</span></td>
-                                <td class="px-6 py-4 whitespace-nowrap text-gray-400">{{
-                                    "$%s"|format(cost.output_price) }} <span class="text-gray-500">/ {{
-                                        pricingUnitAbbreviation }} {{
-                                        cost.model.unit.value }}</span></td>
-                                <td class="px-6 py-4 whitespace-nowrap text-gray-400">{{ "$%s"|format(cost.cost) }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-gray-300">{{ "$%s"|format(cost.total) }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <button class="text-blue-500 hover:text-blue-700" hx-post="/update" hx-target="body"
-                                        hx-vals='{"pinned_model": "{{ cost.model.name }}"}'>
-                                        {% if cost.model.name in pinned_models %}
-                                        <span class="material-symbols-outlined">keep_off</span>
-                                        {% else %}
-                                        <span class="material-symbols-outlined text-gray-400">keep</span>
-                                        {% endif %}
-                                    </button>
-                                </td>
-                            </tr>
-                            {% endfor %}
+                                        alt="{{ cost.model.provider.value }} logo" class="h-6 w-6"> </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-gray-800">{{ cost.model.name }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-gray-600 price">{{
+                                    "$%s"|format(cost.input_price) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-gray-600 price">{{
+                                    "$%s"|format(cost.output_price) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-gray-800 price font-medium">{{
+                                    "$%s"|format(cost.total) }} </td>
+                                <td class="px-6 py-4 whitespace-nowrap"> <button
+                                        class="text-blue-600 hover:text-blue-800" hx-post="/update" hx-target="body"
+                                        hx-vals='{"pinned_model": "{{ cost.model.name }}"}'> {% if cost.model.name in
+                                        pinned_models %} <span class="material-symbols-outlined">keep_off</span> {% else
+                                        %} <span class="material-symbols-outlined text-gray-400">keep</span> {% endif %}
+                                    </button> </td>
+                            </tr> {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </section>
-            <section class="container mx-auto px-4 py-8">
-                <div class="bg-white shadow-md rounded-lg p-6">
-                    <h2 class="text-xl font-semibold text-gray-100 mb-4">Frequently Asked Questions</h2>
-                    <div class="faq">
-                        <div class="question">What is the GPT API Pricing calculator?</div>
-                        <div class="answer">The GPT API Pricing calculator is a tool that helps you estimate the costs
-                            of
-                            using different large language models for your inferences. It calculates the prices based on
-                            input and output tokens and provides a comparison of various models and providers.</div>
-                        <div class="question">How do I use the GPT API Pricing calculator?</div>
-                        <div class="answer">To use the LLM Calculator, simply enter your input and output messages in
-                            the
-                            respective text areas, specify the number of inferences, and the calculator will display the
-                            estimated costs for different language models automatically.</div>
-                        <div class="question">Which large language models are displayed here?</div>
-                        <div class="answer">Various large language model providers are displayed here. Picks are based
-                            on
-                            the top 10 of the <a
-                                href="https://huggingface.co/spaces/lmsys/chatbot-arena-leaderboard">LMSYS
-                                Chatbot Arena Leaderboard</a>.</div>
-                        <div class="question">Are the prices accurate?</div>
-                        <div class="answer">The prices shown here are estimates based on the information provided by the
-                            websites of the large language model providers. While we strive to keep the prices up to
-                            date,
-                            it's always recommended to refer to the official pricing documentation of each provider for
-                            the
-                            most accurate and current pricing information.</div>
-                        <div class="question">Is it safe to enter my prompts?</div>
-                        <div class="answer">Yes, it is safe to enter your prompt in the GPT API Pricing calculator. The
-                            prompts are solely used solely for calculating the costs of using different language models
-                            and
-                            is not stored or shared with any third parties. Your privacy and data security are our top
-                            priorities.</div>
+            <section class="container mx-auto w-4/6 px-4 py-8">
+                <div class="rounded-lg border bg-card text-card-foreground shadow-lg">
+                    <div class="p-6">
+                        <h2 class="text-2xl font-semibold mb-4">Frequently Asked Questions</h2>
+                        <div class="w-full mt-4" collapsible="" data-orientation="vertical">
+                            <div data-state="closed" data-orientation="vertical" class="border-b">
+                                <h3 data-orientation="vertical" data-state="closed" class="flex"> <button type="button"
+                                        aria-controls="question1" aria-expanded="false" data-state="closed"
+                                        data-orientation="vertical" id="question1"
+                                        class="flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&amp;[data-state=open]>svg]:rotate-180 hover:underline-none"
+                                        data-radix-collection-item=""> What is the LLM API Pricing calculator? <svg
+                                            xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round"
+                                            class="h-4 w-4 shrink-0 transition-transform duration-200">
+                                            <path d="m6 9 6 6 6-6"></path>
+                                        </svg> </button> </h3>
+                                <div data-state="closed" id="question1" hidden="" role="region"
+                                    aria-labelledby="question1" data-orientation="vertical"
+                                    class="overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+                                    style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);">
+                                    <div class="mb-2"> The LLM API Pricing calculator is a tool that helps you estimate
+                                        the costs of using different large language models for your inferences. It
+                                        calculates the prices based on input and output tokens and provides a comparison
+                                        of various models and providers. </div>
+                                </div>
+                            </div>
+                            <div data-state="closed" data-orientation="vertical" class="border-b">
+                                <h3 data-orientation="vertical" data-state="closed" class="flex"> <button type="button"
+                                        aria-controls="question2" aria-expanded="false" data-state="closed"
+                                        data-orientation="vertical" id="question2"
+                                        class="flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&amp;[data-state=open]>svg]:rotate-180 hover:underline-none"
+                                        data-radix-collection-item=""> How do I use the LLM API Pricing calculator? <svg
+                                            xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round"
+                                            class="h-4 w-4 shrink-0 transition-transform duration-200">
+                                            <path d="m6 9 6 6 6-6"></path>
+                                        </svg> </button> </h3>
+                                <div data-state="closed" id="question2" hidden="" role="region"
+                                    aria-labelledby="question2" data-orientation="vertical"
+                                    class="overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+                                    style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);">
+                                    <div class="mb-2"> To use the LLM Calculator, simply enter your input and output
+                                        messages in the respective text areas, specify the number of inferences, and the
+                                        calculator will display the estimated costs for different language models
+                                        automatically. </div>
+                                </div>
+                            </div>
+                            <div data-state="closed" data-orientation="vertical" class="border-b">
+                                <h3 data-orientation="vertical" data-state="closed" class="flex"> <button type="button"
+                                        aria-controls="question3" aria-expanded="false" data-state="closed"
+                                        data-orientation="vertical" id="question3"
+                                        class="flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&amp;[data-state=open]>svg]:rotate-180 hover:underline-none"
+                                        data-radix-collection-item=""> Which large language models are displayed here?
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round"
+                                            class="h-4 w-4 shrink-0 transition-transform duration-200">
+                                            <path d="m6 9 6 6 6-6"></path>
+                                        </svg> </button> </h3>
+                                <div data-state="closed" id="question3" hidden="" role="region"
+                                    aria-labelledby="question3" data-orientation="vertical"
+                                    class="overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+                                    style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);">
+                                    <div class="mb-2"> Various large language model providers are displayed here. Picks
+                                        are based on the top 10 of the <a
+                                            href="https://huggingface.co/spaces/lmsys/chatbot-arena-leaderboard">LMSYS
+                                            Chatbot Arena Leaderboard</a>. </div>
+                                </div>
+                            </div>
+                            <div data-state="closed" data-orientation="vertical" class="border-b">
+                                <h3 data-orientation="vertical" data-state="closed" class="flex"> <button type="button"
+                                        aria-controls="question4" aria-expanded="false" data-state="closed"
+                                        data-orientation="vertical" id="question4"
+                                        class="flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&amp;[data-state=open]>svg]:rotate-180 hover:underline-none"
+                                        data-radix-collection-item=""> Are the prices accurate? <svg
+                                            xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round"
+                                            class="h-4 w-4 shrink-0 transition-transform duration-200">
+                                            <path d="m6 9 6 6 6-6"></path>
+                                        </svg> </button> </h3>
+                                <div data-state="closed" id="question4" hidden="" role="region"
+                                    aria-labelledby="question4" data-orientation="vertical"
+                                    class="overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+                                    style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);">
+                                    <div class="mb-2"> The prices shown here are estimates based on the information
+                                        provided by the websites of the large language model providers. While we strive
+                                        to keep the prices up to date, it's always recommended to refer to the official
+                                        pricing documentation of each provider for the most accurate and current pricing
+                                        information. </div>
+                                </div>
+                            </div>
+                            <div data-state="closed" data-orientation="vertical" class="border-b-0">
+                                <h3 data-orientation="vertical" data-state="closed" class="flex"> <button type="button"
+                                        aria-controls="question5" aria-expanded="false" data-state="closed"
+                                        data-orientation="vertical" id="question5"
+                                        class="flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&amp;[data-state=open]>svg]:rotate-180 hover:underline-none"
+                                        data-radix-collection-item=""> Is it safe to enter my prompts? <svg
+                                            xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round"
+                                            class="h-4 w-4 shrink-0 transition-transform duration-200">
+                                            <path d="m6 9 6 6 6-6"></path>
+                                        </svg> </button> </h3>
+                                <div data-state="closed" id="question5" hidden="" role="region"
+                                    aria-labelledby="question5" data-orientation="vertical"
+                                    class="overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+                                    style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);">
+                                    <div class="mb-2"> Yes, it is safe to enter your prompt in the LLM API Pricing
+                                        calculator. The prompts are solely used solely for calculating the costs of
+                                        using different language models and is not stored or shared with any third
+                                        parties. Your privacy and data security are our top priorities. </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
         </form>
     </main>
-    <footer class="text-center py-4 text-gray-400">
-        <p>GPT API Pricing &copy; 2024. All rights reserved.</p>
+    <footer class="text-center py-4 text-gray-700">
+        <p>LLM API Pricing &copy; 2024. All rights reserved.</p>
     </footer>
+    <script>
+        const collapsibleButtons = document.querySelectorAll('[data-radix-collection-item]');
+      
+        collapsibleButtons.forEach(button => {
+          button.addEventListener('click', () => {
+            const collapsibleContent = button.parentElement.nextElementSibling;
+            const isOpen = collapsibleContent.getAttribute('data-state') === 'open';
+      
+            if (isOpen) {
+              collapsibleContent.setAttribute('data-state', 'closed');
+              collapsibleContent.style.display = 'none';
+              button.setAttribute('aria-expanded', 'false');
+            } else {
+              collapsibleContent.setAttribute('data-state', 'open');
+              collapsibleContent.style.display = 'block';
+              button.setAttribute('aria-expanded', 'true');
+            }
+          });
+        });
+    </script>
 </body>
 
 </html>

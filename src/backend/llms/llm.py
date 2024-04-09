@@ -17,11 +17,11 @@ class Encoding(Enum):
 
 
 class Provider(Enum):
-    openai = "openai"
-    anthropic = "anthropic"
-    google = "google"
-    mistral = "mistral"
-    cohere = "cohere"
+    openai = "OpenAI"
+    anthropic = "Anthropic"
+    google = "Google"
+    mistral = "Mistral"
+    cohere = "Cohere"
 
 
 class LLMModel:
@@ -169,7 +169,7 @@ class Gemini_Pro_1_5(LLMModel):
 class Mistral_Small(LLMModel):
     def __init__(self):
         super().__init__(
-            "Mistral Small",
+            "Small",
             Provider.mistral,
             Encoding.cl100k_base,
             Unit.tokens,
@@ -185,7 +185,7 @@ class Mistral_Small(LLMModel):
 class Mistral_Medium(LLMModel):
     def __init__(self):
         super().__init__(
-            "Mistral Medium",
+            "Medium",
             Provider.mistral,
             Encoding.cl100k_base,
             Unit.tokens,
@@ -201,7 +201,7 @@ class Mistral_Medium(LLMModel):
 class Mistral_Large(LLMModel):
     def __init__(self):
         super().__init__(
-            "Mistral Large",
+            "Large",
             Provider.mistral,
             Encoding.cl100k_base,
             Unit.tokens,
